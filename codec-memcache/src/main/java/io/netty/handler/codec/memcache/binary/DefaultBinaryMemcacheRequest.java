@@ -16,8 +16,7 @@
 package io.netty.handler.codec.memcache.binary;
 
 import io.netty.buffer.ByteBuf;
-import io.netty.buffer.EmptyByteBuf;
-import io.netty.buffer.UnpooledByteBufAllocator;
+import io.netty.buffer.Unpooled;
 
 /**
  *
@@ -30,7 +29,7 @@ public class DefaultBinaryMemcacheRequest extends DefaultBinaryMemcacheMessage<B
    * @param header
    */
   public DefaultBinaryMemcacheRequest(BinaryMemcacheRequestHeader header) {
-    this(header, null, new EmptyByteBuf(UnpooledByteBufAllocator.DEFAULT));
+    this(header, null, Unpooled.EMPTY_BUFFER);
   }
 
   /**
@@ -39,7 +38,7 @@ public class DefaultBinaryMemcacheRequest extends DefaultBinaryMemcacheMessage<B
    * @param key
    */
   public DefaultBinaryMemcacheRequest(BinaryMemcacheRequestHeader header, String key) {
-    this(header, key, new EmptyByteBuf(UnpooledByteBufAllocator.DEFAULT));
+    this(header, key, Unpooled.EMPTY_BUFFER);
   }
 
   /**
