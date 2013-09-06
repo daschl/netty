@@ -21,7 +21,11 @@ package io.netty.handler.codec.memcache.binary.util;
  * This class can be extended if a custom application needs to implement a superset of the normally supported
  * operations by a vanilla memcached protocol.
  */
-public class BinaryMemcacheOpcodes {
+public final class BinaryMemcacheOpcodes {
+
+  private BinaryMemcacheOpcodes() {
+    // disallow construction
+  }
 
   public static final byte GET = 0x00;
   public static final byte SET = 0x01;

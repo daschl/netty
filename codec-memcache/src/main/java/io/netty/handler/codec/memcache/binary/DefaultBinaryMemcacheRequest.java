@@ -60,7 +60,6 @@ public class DefaultBinaryMemcacheRequest extends DefaultBinaryMemcacheMessage<B
     super(header, key, extras);
   }
 
-
   @Override
   public BinaryMemcacheRequestHeader getHeader() {
     return super.getHeader();

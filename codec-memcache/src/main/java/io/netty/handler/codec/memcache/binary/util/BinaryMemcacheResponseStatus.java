@@ -19,7 +19,11 @@ package io.netty.handler.codec.memcache.binary.util;
  * Contains all possible status values a
  * {@link io.netty.handler.codec.memcache.binary.BinaryMemcacheResponseHeader} can return.
  */
-public class BinaryMemcacheResponseStatus {
+public final class BinaryMemcacheResponseStatus {
+
+  private BinaryMemcacheResponseStatus() {
+    // disallow construction
+  }
 
   public static final short SUCCESS = 0x00;
   public static final short KEY_ENOENT = 0x01;

@@ -13,10 +13,8 @@
  * License for the specific language governing permissions and limitations
  * under the License.
  */
-package io.netty.handler.codec.memcache;
 
 /**
- * Marker interface for both ascii and binary messages.
+ * Implementations and Interfaces for the Memcache Binary protocol.
  */
-public interface MemcacheMessage extends MemcacheObject {
-}
+package io.netty.handler.codec.memcache.binary;
