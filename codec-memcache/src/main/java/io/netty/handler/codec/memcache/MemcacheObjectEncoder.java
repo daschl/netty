@@ -16,6 +16,7 @@
 package io.netty.handler.codec.memcache;
 
 import io.netty.buffer.ByteBuf;
+import io.netty.buffer.Unpooled;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.FileRegion;
 import io.netty.handler.codec.MessageToMessageEncoder;
@@ -31,12 +32,31 @@ import java.util.List;
  */
 public abstract class MemcacheObjectEncoder<M extends MemcacheMessage> extends MessageToMessageEncoder<Object> {
 
+  private boolean expectingMoreContent;
+
+  public MemcacheObjectEncoder() {
+    expectingMoreContent = false;
+  }
+
   @Override
   protected void encode(ChannelHandlerContext ctx, Object msg, List<Object> out) throws Exception {
     if (msg instanceof MemcacheMessage) {
+      if (expectingMoreContent) {
+        throw new IllegalStateException("unexpected message type: " + msg.getClass().getSimpleName());
+      }
+
       out.add(encodeMessage(ctx, (M) msg));
     } else if (msg instanceof MemcacheContent || msg instanceof ByteBuf || msg instanceof FileRegion) {
-      throw new UnsupportedOperationException("not supported yet.");
+      int contentLength = contentLength(msg);
+      if (contentLength > 0) {
+        out.add(encodeAndRetain(msg));
+      } else {
+        out.add(Unpooled.EMPTY_BUFFER);
+      }
+
+      expectingMoreContent = !(msg instanceof  LastMemcacheContent);
+    } else {
+      throw new Error("Unexpected message type: " + msg.getClass().getSimpleName());
     }
   }
 
@@ -53,5 +73,43 @@ public abstract class MemcacheObjectEncoder<M extends MemcacheMessage> extends M
    * @return the {@link ByteBuf} representation of the message.
    */
   protected abstract ByteBuf encodeMessage(ChannelHandlerContext ctx, M msg);
+
+  /**
+   * Determine the content length of the given object.
+   *
+   * @param msg the object to determine the length of.
+   * @return the determined content length.
+   */
+  private static int contentLength(Object msg) {
+    if (msg instanceof MemcacheContent) {
+      return ((MemcacheContent) msg).content().readableBytes();
+    }
+    if (msg instanceof ByteBuf) {
+      return ((ByteBuf) msg).readableBytes();
+    }
+    if (msg instanceof FileRegion) {
+      return (int) ((FileRegion) msg).count();
+    }
+    throw new IllegalStateException("unexpected message type: " + msg.getClass().getSimpleName());
+  }
+
+  /**
+   * Encode the content, depending on the object type.
+   *
+   * @param msg the object to encode.
+   * @return the encoded object.
+   */
+  private static Object encodeAndRetain(Object msg) {
+    if (msg instanceof ByteBuf) {
+      return ((ByteBuf) msg).retain();
+    }
+    if (msg instanceof MemcacheContent) {
+      return ((MemcacheContent) msg).content().retain();
+    }
+    if (msg instanceof FileRegion) {
+      return ((FileRegion) msg).retain();
+    }
+    throw new IllegalStateException("unexpected message type: " + msg.getClass().getSimpleName());
+  }
 
 }

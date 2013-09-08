@@ -21,7 +21,19 @@ package io.netty.handler.codec.memcache.binary;
 public class DefaultBinaryMemcacheResponseHeader extends DefaultBinaryMemcacheMessageHeader
   implements BinaryMemcacheResponseHeader {
 
+  /**
+   * Default magic byte for a request.
+   */
+  public static final byte RESPONSE_MAGIC_BYTE = (byte) 0x81;
+
   private short status;
+
+  /**
+   * Create a new {@link BinaryMemcacheRequestHeader} and apply default values.
+   */
+  public DefaultBinaryMemcacheResponseHeader() {
+    setMagic(RESPONSE_MAGIC_BYTE);
+  }
 
   @Override
   public short getStatus() {
