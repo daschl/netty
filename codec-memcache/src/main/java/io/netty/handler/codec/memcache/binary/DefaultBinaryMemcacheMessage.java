@@ -17,6 +17,7 @@ package io.netty.handler.codec.memcache.binary;
 
 import io.netty.buffer.ByteBuf;
 import io.netty.handler.codec.memcache.DefaultMemcacheObject;
+import io.netty.util.AbstractReferenceCounted;
 import io.netty.util.ReferenceCounted;
 
 /**
@@ -92,7 +93,7 @@ public abstract class DefaultBinaryMemcacheMessage<H extends BinaryMemcacheMessa
     if (extras != null) {
       return extras.refCnt();
     }
-    return 0;
+    return 1;
   }
 
   @Override
@@ -116,7 +117,7 @@ public abstract class DefaultBinaryMemcacheMessage<H extends BinaryMemcacheMessa
     if (extras != null) {
       return extras.release();
     }
-    return true;
+    return false;
   }
 
   @Override
@@ -124,6 +125,6 @@ public abstract class DefaultBinaryMemcacheMessage<H extends BinaryMemcacheMessa
     if (extras != null) {
       return extras.release(decrement);
     }
-    return true;
+    return false;
   }
 }

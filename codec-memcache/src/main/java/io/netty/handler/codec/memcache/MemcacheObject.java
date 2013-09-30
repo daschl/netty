@@ -16,6 +16,7 @@
 package io.netty.handler.codec.memcache;
 
 import io.netty.handler.codec.DecoderResult;
+import io.netty.util.ReferenceCounted;
 
 /**
  * Defines a common interface for all {@link MemcacheObject} implementations.
