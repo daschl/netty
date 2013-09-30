@@ -126,6 +126,8 @@ public abstract class BinaryMemcacheDecoder<M extends BinaryMemcacheMessage, H e
           if (alreadyReadChunkSize < valueLength) {
             return;
           }
+        } else {
+          out.add(new DefaultLastMemcacheContent());
         }
 
         state = State.READ_HEADER;

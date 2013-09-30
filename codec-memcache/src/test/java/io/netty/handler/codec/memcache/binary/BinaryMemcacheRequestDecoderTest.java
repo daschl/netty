@@ -18,9 +18,11 @@ package io.netty.handler.codec.memcache.binary;
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.Unpooled;
 import io.netty.channel.embedded.EmbeddedChannel;
+import io.netty.handler.codec.memcache.LastMemcacheContent;
 import org.junit.Before;
 import org.junit.Test;
 
+import static org.hamcrest.CoreMatchers.instanceOf;
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.core.IsNull.notNullValue;
@@ -70,6 +72,8 @@ public class BinaryMemcacheRequestDecoderTest {
     assertThat(header.getKeyLength(), is((short) 3));
     assertThat(header.getExtrasLength(), is((byte) 0));
     assertThat(header.getTotalBodyLength(), is(3));
+
+    assertThat(channel.readInbound(), instanceOf(LastMemcacheContent.class));
   }
 
   /**
