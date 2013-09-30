@@ -22,6 +22,7 @@ import io.netty.handler.codec.memcache.DefaultMemcacheContent;
 import io.netty.handler.codec.memcache.MemcacheContent;
 import io.netty.handler.codec.memcache.MemcacheObjectDecoder;
 import io.netty.util.CharsetUtil;
+import io.netty.util.ReferenceCountUtil;
 
 import java.util.List;
 
@@ -142,7 +143,12 @@ public abstract class BinaryMemcacheDecoder<M extends BinaryMemcacheMessage, H e
    */
   protected void resetDecoder() {
     currentHeader = null;
-    currentExtras = null;
+
+    if (currentExtras != null) {
+      ReferenceCountUtil.release(currentExtras);
+      currentExtras = null;
+    }
+
     currentKey = null;
     currentValue = null;
     alreadyReadChunkSize = 0;
