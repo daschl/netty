@@ -73,4 +73,15 @@ public interface BinaryMemcacheMessage<H extends BinaryMemcacheMessageHeader> ex
    * @param extras the optional extras.
    */
   BinaryMemcacheMessage setExtras(ByteBuf extras);
+
+  /**
+   * Increases the reference count by {@code 1}.
+   */
+  BinaryMemcacheMessage retain();
+
+  /**
+   * Increases the reference count by the specified {@code increment}.
+   */
+  BinaryMemcacheMessage retain(int increment);
+
 }

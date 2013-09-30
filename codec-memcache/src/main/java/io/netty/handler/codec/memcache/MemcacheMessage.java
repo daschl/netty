@@ -15,8 +15,21 @@
  */
 package io.netty.handler.codec.memcache;
 
+import io.netty.util.ReferenceCounted;
+
 /**
  * Marker interface for both ascii and binary messages.
  */
-public interface MemcacheMessage extends MemcacheObject {
+public interface MemcacheMessage extends MemcacheObject, ReferenceCounted {
+
+  /**
+   * Increases the reference count by {@code 1}.
+   */
+  MemcacheMessage retain();
+
+  /**
+   * Increases the reference count by the specified {@code increment}.
+   */
+  MemcacheMessage retain(int increment);
+
 }

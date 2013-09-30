@@ -143,12 +143,7 @@ public abstract class BinaryMemcacheDecoder<M extends BinaryMemcacheMessage, H e
    */
   protected void resetDecoder() {
     currentHeader = null;
-
-    if (currentExtras != null) {
-      ReferenceCountUtil.release(currentExtras);
-      currentExtras = null;
-    }
-
+    currentExtras = null;
     currentKey = null;
     currentValue = null;
     alreadyReadChunkSize = 0;
