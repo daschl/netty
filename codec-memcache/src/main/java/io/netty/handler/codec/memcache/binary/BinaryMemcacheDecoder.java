@@ -33,7 +33,7 @@ import java.util.List;
 public abstract class BinaryMemcacheDecoder<M extends BinaryMemcacheMessage, H extends BinaryMemcacheMessageHeader>
   extends MemcacheObjectDecoder {
 
-  static final int DEFAULT_MAX_CHUNK_SIZE = 8192;
+  public static final int DEFAULT_MAX_CHUNK_SIZE = 8192;
 
   private final int chunkSize;
 

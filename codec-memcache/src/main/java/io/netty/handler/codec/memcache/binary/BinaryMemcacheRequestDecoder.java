@@ -23,6 +23,14 @@ import io.netty.buffer.ByteBuf;
 public class BinaryMemcacheRequestDecoder
   extends BinaryMemcacheDecoder<BinaryMemcacheRequest, BinaryMemcacheRequestHeader> {
 
+  public BinaryMemcacheRequestDecoder() {
+    this(DEFAULT_MAX_CHUNK_SIZE);
+  }
+
+  public BinaryMemcacheRequestDecoder(int chunkSize) {
+    super(chunkSize);
+  }
+
   @Override
   protected BinaryMemcacheRequestHeader decodeHeader(ByteBuf in) {
     BinaryMemcacheRequestHeader header = new DefaultBinaryMemcacheRequestHeader();
