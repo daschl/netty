@@ -56,6 +56,8 @@ public class BinaryMemcacheRequestEncoderTest {
     assertThat(written.readableBytes(), is(DEFAULT_HEADER_SIZE));
     assertThat(written.readByte(), is((byte) 0x80));
     assertThat(written.readByte(), is((byte) 0x00));
+
+
   }
 
   @Test
