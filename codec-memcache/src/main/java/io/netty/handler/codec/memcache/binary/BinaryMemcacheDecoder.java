@@ -106,16 +106,14 @@ public abstract class BinaryMemcacheDecoder<M extends BinaryMemcacheMessage, H e
           - currentHeader.getExtrasLength();
         int toRead = in.readableBytes();
         if (valueLength > 0) {
-          if (toRead > chunkSize) {
+          if (toRead == 0) {
+            return;
+          } else if (toRead > chunkSize) {
             toRead = chunkSize;
           }
 
           if (toRead > valueLength) {
             toRead = valueLength;
-          }
-
-          if (toRead < valueLength) {
-            return;
           }
 
           ByteBuf chunkBuffer = readBytes(ctx.alloc(), in, toRead);
