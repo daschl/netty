@@ -110,10 +110,13 @@ public abstract class BinaryMemcacheDecoder<M extends BinaryMemcacheMessage, H e
             toRead = chunkSize;
           }
 
+          if (toRead > valueLength) {
+            toRead = valueLength;
+          }
+
           if (toRead < valueLength) {
             return;
           }
-
 
           ByteBuf chunkBuffer = readBytes(ctx.alloc(), in, toRead);
           boolean isLast = (alreadyReadChunkSize + toRead) >= valueLength;
@@ -131,7 +134,7 @@ public abstract class BinaryMemcacheDecoder<M extends BinaryMemcacheMessage, H e
         }
 
         state = State.READ_HEADER;
-        break;
+        return;
       default:
         throw new Error("Unknown state reached: " + state);
     }
