@@ -19,6 +19,7 @@ import io.netty.buffer.ByteBuf;
 import io.netty.buffer.Unpooled;
 import io.netty.channel.embedded.EmbeddedChannel;
 import io.netty.handler.codec.memcache.LastMemcacheContent;
+import io.netty.handler.codec.memcache.MemcacheContent;
 import org.junit.Before;
 import org.junit.Test;
 
@@ -36,7 +37,7 @@ public class BinaryMemcacheRequestDecoderTest {
   /**
    * Represents a GET request header with a key size of three.
    */
-  private static final byte[] GET_REQUEST_HEADER = new byte[] {
+  private static final byte[] GET_REQUEST = new byte[] {
     (byte) 0x80, 0x00, 0x00, 0x03,
     0x00, 0x00, 0x00, 0x00,
     0x00, 0x00, 0x00, 0x03,
@@ -44,6 +45,18 @@ public class BinaryMemcacheRequestDecoderTest {
     0x00, 0x00, 0x00, 0x00,
     0x00, 0x00, 0x00, 0x00,
     0x66, 0x6f, 0x6f
+  };
+
+  private static final byte[] SET_REQUEST_WITH_CONTENT = new byte [] {
+    (byte) 0x80, 0x01, 0x00, 0x03,
+    0x00, 0x00, 0x00, 0x00,
+    0x00, 0x00, 0x00, 0x0B,
+    0x00, 0x00, 0x00, 0x00,
+    0x00, 0x00, 0x00, 0x00,
+    0x00, 0x00, 0x00, 0x00,
+    0x66, 0x6f, 0x6f,
+    0x01, 0x02, 0x03, 0x04,
+    0x05, 0x06, 0x07, 0x08
   };
 
   private EmbeddedChannel channel;
@@ -59,11 +72,12 @@ public class BinaryMemcacheRequestDecoderTest {
   @Test
   public void shouldDecodeRequestWithSimpleValue() {
     ByteBuf incoming = Unpooled.buffer();
-    incoming.writeBytes(GET_REQUEST_HEADER);
+    incoming.writeBytes(GET_REQUEST);
     channel.writeInbound(incoming);
 
     BinaryMemcacheRequest request = (BinaryMemcacheRequest) channel.readInbound();
 
+    assertThat(request, notNullValue());
     assertThat(request.getHeader(), notNullValue());
     assertThat(request.getKey(), notNullValue());
     assertThat(request.getExtras(), nullValue());
@@ -82,6 +96,36 @@ public class BinaryMemcacheRequestDecoderTest {
    */
   @Test
   public void shouldDecodeRequestWithChunkedContent() {
+    int smallBatchSize = 2;
+    channel = new EmbeddedChannel(new BinaryMemcacheRequestDecoder(smallBatchSize));
+
+    ByteBuf incoming = Unpooled.buffer();
+    incoming.writeBytes(SET_REQUEST_WITH_CONTENT);
+    channel.writeInbound(incoming);
+
+    BinaryMemcacheRequest request = (BinaryMemcacheRequest) channel.readInbound();
+
+    assertThat(request, notNullValue());
+    assertThat(request.getHeader(), notNullValue());
+    assertThat(request.getKey(), notNullValue());
+    assertThat(request.getExtras(), nullValue());
+
+    BinaryMemcacheRequestHeader header = request.getHeader();
+    assertThat(header.getKeyLength(), is((short) 3));
+    assertThat(header.getExtrasLength(), is((byte) 0));
+    assertThat(header.getTotalBodyLength(), is(11));
+
+    int expectedContentChunks = 4;
+    for (int i = 1; i <= expectedContentChunks; i++) {
+      MemcacheContent content = (MemcacheContent) channel.readInbound();
+      if (i < expectedContentChunks) {
+        assertThat(content, instanceOf(MemcacheContent.class));
+      } else {
+        assertThat(content, instanceOf(LastMemcacheContent.class));
+      }
+      assertThat(content.content().readableBytes(), is(2));
+    }
+    assertThat(channel.readInbound(), nullValue());
   }
 
   /**
@@ -90,6 +134,45 @@ public class BinaryMemcacheRequestDecoderTest {
    */
   @Test
   public void shouldHandleNonUniformNetworkBatches() {
+    ByteBuf incoming = Unpooled.copiedBuffer(SET_REQUEST_WITH_CONTENT);
+    while (incoming.isReadable()) {
+      channel.writeInbound(incoming.readBytes(5));
+    }
+
+    BinaryMemcacheRequest request = (BinaryMemcacheRequest) channel.readInbound();
+
+    assertThat(request, notNullValue());
+    assertThat(request.getHeader(), notNullValue());
+    assertThat(request.getKey(), notNullValue());
+    assertThat(request.getExtras(), nullValue());
+
+    MemcacheContent content1 = (MemcacheContent) channel.readInbound();
+    MemcacheContent content2 = (MemcacheContent) channel.readInbound();
+
+    assertThat(content1, instanceOf(MemcacheContent.class));
+    assertThat(content2, instanceOf(LastMemcacheContent.class));
+
+    assertThat(content1.content().readableBytes(), is(3));
+    assertThat(content2.content().readableBytes(), is(5));
+  }
+
+  /**
+   * This test makes sure that even when more requests arrive in the same batch, they
+   * get emitted as separate messages.
+   */
+  @Test
+  public void shouldHandleTwoMessagesInOneBatch() {
+    channel.writeInbound(Unpooled.buffer().writeBytes(GET_REQUEST).writeBytes(GET_REQUEST));
+
+    BinaryMemcacheRequest request = (BinaryMemcacheRequest) channel.readInbound();
+    assertThat(request, instanceOf(BinaryMemcacheRequest.class));
+    assertThat(request, notNullValue());
+    assertThat(channel.readInbound(), instanceOf(LastMemcacheContent.class));
+
+    request = (BinaryMemcacheRequest) channel.readInbound();
+    assertThat(request, instanceOf(BinaryMemcacheRequest.class));
+    assertThat(request, notNullValue());
+    assertThat(channel.readInbound(), instanceOf(LastMemcacheContent.class));
   }
 
 }
