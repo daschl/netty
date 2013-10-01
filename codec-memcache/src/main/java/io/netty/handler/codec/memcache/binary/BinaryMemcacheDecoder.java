@@ -139,6 +139,23 @@ public abstract class BinaryMemcacheDecoder<M extends BinaryMemcacheMessage, H e
   }
 
   /**
+   * When the channel goes inactive, release all frames to prevent data leaks.
+   *
+   * @param ctx handler context
+   * @throws Exception
+   */
+  @Override
+  public void channelInactive(ChannelHandlerContext ctx) throws Exception {
+    super.channelInactive(ctx);
+
+    if (currentExtras != null) {
+      currentExtras.release();
+    }
+
+    resetDecoder();
+  }
+
+  /**
    * Prepare for next decoding iteration.
    */
   protected void resetDecoder() {
