@@ -18,7 +18,7 @@ package io.netty.handler.codec.memcache.binary;
 import io.netty.buffer.ByteBuf;
 
 /**
- *
+ * The decoder which takes care of decoding the response headers.
  */
 public class BinaryMemcacheResponseDecoder
   extends BinaryMemcacheDecoder<BinaryMemcacheResponse, BinaryMemcacheResponseHeader> {

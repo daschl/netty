@@ -13,14 +13,18 @@
  * License for the specific language governing permissions and limitations
  * under the License.
  */
-package io.netty.handler.codec.memcache;
+package io.netty.handler.codec.memcache.binary;
 
 import io.netty.channel.CombinedChannelDuplexHandler;
 import io.netty.handler.codec.memcache.binary.BinaryMemcacheRequestDecoder;
 import io.netty.handler.codec.memcache.binary.BinaryMemcacheResponseEncoder;
 
 /**
+ * The full server codec that combines the correct encoder and decoder.
  *
+ * Use this codec if you need to implement a server that speaks the memache binary protocol.
+ * Internally, it combines the {@link BinaryMemcacheRequestDecoder} and the
+ * {@link BinaryMemcacheResponseEncoder} to request decoding and response encoding.
  */
 public class BinaryMemcacheServerCodec
   extends CombinedChannelDuplexHandler<BinaryMemcacheRequestDecoder, BinaryMemcacheResponseEncoder> {

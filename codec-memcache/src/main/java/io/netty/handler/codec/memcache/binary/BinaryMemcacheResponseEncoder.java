@@ -18,7 +18,7 @@ package io.netty.handler.codec.memcache.binary;
 import io.netty.buffer.ByteBuf;
 
 /**
- *
+ * The encoder which takes care of encoding the response headers.
  */
 public class BinaryMemcacheResponseEncoder
   extends BinaryMemcacheEncoder<BinaryMemcacheResponse, BinaryMemcacheResponseHeader> {

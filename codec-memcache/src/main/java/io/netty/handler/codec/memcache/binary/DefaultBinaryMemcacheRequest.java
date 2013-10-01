@@ -19,42 +19,46 @@ import io.netty.buffer.ByteBuf;
 import io.netty.buffer.Unpooled;
 
 /**
- *
+ * The default implementation of the {@link BinaryMemcacheRequest}.
  */
 public class DefaultBinaryMemcacheRequest extends DefaultBinaryMemcacheMessage<BinaryMemcacheRequestHeader>
   implements BinaryMemcacheRequest {
 
   /**
+   * Create a new {@link DefaultBinaryMemcacheRequest} with the header only.
    *
-   * @param header
+   * @param header the header to use.
    */
   public DefaultBinaryMemcacheRequest(BinaryMemcacheRequestHeader header) {
     this(header, null, Unpooled.EMPTY_BUFFER);
   }
 
   /**
+   * Create a new {@link DefaultBinaryMemcacheRequest} with the header and key.
    *
-   * @param header
-   * @param key
+   * @param header the header to use.
+   * @param key the key to use.
    */
   public DefaultBinaryMemcacheRequest(BinaryMemcacheRequestHeader header, String key) {
     this(header, key, Unpooled.EMPTY_BUFFER);
   }
 
   /**
+   * Create a new {@link DefaultBinaryMemcacheRequest} with the header and extras.
    *
-   * @param header
-   * @param extras
+   * @param header the header to use.
+   * @param extras the extras to use.
    */
   public DefaultBinaryMemcacheRequest(BinaryMemcacheRequestHeader header, ByteBuf extras) {
     this(header, null, extras);
   }
 
   /**
+   * Create a new {@link DefaultBinaryMemcacheRequest} with the header only.
    *
-   * @param header
-   * @param key
-   * @param extras
+   * @param header the header to use.
+   * @param key the key to use.
+   * @param extras the extras to use.
    */
   public DefaultBinaryMemcacheRequest(BinaryMemcacheRequestHeader header, String key, ByteBuf extras) {
     super(header, key, extras);

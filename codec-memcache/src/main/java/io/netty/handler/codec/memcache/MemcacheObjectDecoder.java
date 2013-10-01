@@ -17,7 +17,6 @@ package io.netty.handler.codec.memcache;
 
 import io.netty.handler.codec.ByteToMessageDecoder;
 
-
 /**
  * Abstract super class for both ascii and binary decoders.
  *
@@ -25,5 +24,4 @@ import io.netty.handler.codec.ByteToMessageDecoder;
  * different between ascii and binary.
  */
 public abstract class MemcacheObjectDecoder extends ByteToMessageDecoder {
-
 }

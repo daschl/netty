@@ -20,11 +20,10 @@ import io.netty.buffer.ByteBufHolder;
 /**
  * An Memcache content chunk.
  *
- * {@link MemacheObjectDecoder} generates {@link MemcacheContent} after
+ * {@link MemcacheObjectDecoder} generates {@link MemcacheContent} after
  * {@link MemcacheMessage} when the content is large. If you prefer not to
- * receive {@link MemcacheContent} in your handler, place {@link MemacheObjectAggregator}
- * after {@link MemcacheObjectDecoder} in the
- * {@link io.netty.channel.ChannelPipeline}.
+ * receive {@link MemcacheContent} in your handler, place a aggregator
+ * after {@link MemcacheObjectDecoder} in the {@link io.netty.channel.ChannelPipeline}.
  */
 public interface MemcacheContent extends MemcacheObject, ByteBufHolder {
 

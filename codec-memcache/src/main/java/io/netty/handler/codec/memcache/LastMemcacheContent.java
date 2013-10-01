@@ -21,6 +21,10 @@ import io.netty.handler.codec.DecoderResult;
 
 /**
  * The {@link MemcacheContent} which signals the end of the content batch.
+ *
+ * Note that by design, even when no content is emitted by the protocol, an
+ * empty {@link LastMemcacheContent} is issued to make the upstream parsing
+ * easier.
  */
 public interface LastMemcacheContent extends MemcacheContent {
 

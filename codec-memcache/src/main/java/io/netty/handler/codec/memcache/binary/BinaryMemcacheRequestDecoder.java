@@ -18,7 +18,7 @@ package io.netty.handler.codec.memcache.binary;
 import io.netty.buffer.ByteBuf;
 
 /**
- *
+ * The decoder part which takes care of decoding the request-specific headers.
  */
 public class BinaryMemcacheRequestDecoder
   extends BinaryMemcacheDecoder<BinaryMemcacheRequest, BinaryMemcacheRequestHeader> {

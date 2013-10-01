@@ -25,7 +25,15 @@ import java.util.List;
 import java.util.concurrent.atomic.AtomicLong;
 
 /**
+ * The client codec that combines the proper encoder and decoder.
  *
+ * Use this codec if you want to implement a memcache client that speaks the binary protocol. It
+ * combines both the {@link BinaryMemcacheResponseDecoder} and the {@link BinaryMemcacheRequestEncoder}.
+ *
+ * Optionally, it counts the number of outstanding responses and raises an exception if - on connection
+ * close - the list is not 0 (this is turned off by default). You can also define a chunk size for the
+ * content, which defaults to 8192. This chunk size is the maximum, so if smaller chunks arrive they
+ * will be passed up the pipeline and not queued up to the chunk size.
  */
 public final class BinaryMemcacheClientCodec
   extends CombinedChannelDuplexHandler<BinaryMemcacheResponseDecoder, BinaryMemcacheRequestEncoder> {
@@ -33,14 +41,28 @@ public final class BinaryMemcacheClientCodec
   private final boolean failOnMissingResponse;
   private final AtomicLong requestResponseCounter = new AtomicLong();
 
+  /**
+   * Create a new {@link BinaryMemcacheClientCodec} with the default settings applied.
+   */
   public BinaryMemcacheClientCodec() {
     this(Decoder.DEFAULT_MAX_CHUNK_SIZE);
   }
 
+  /**
+   * Create a new {@link BinaryMemcacheClientCodec} and set a custom chunk size.
+   *
+   * @param decodeChunkSize the maximum chunk size.
+   */
   public BinaryMemcacheClientCodec(int decodeChunkSize) {
     this(decodeChunkSize, false);
   }
 
+  /**
+   * Create a new {@link BinaryMemcacheClientCodec} with custom settings.
+   *
+   * @param decodeChunkSize the maximum chunk size.
+   * @param failOnMissingResponse report if after close there are outstanding requests.
+   */
   public BinaryMemcacheClientCodec(int decodeChunkSize, boolean failOnMissingResponse) {
     this.failOnMissingResponse = failOnMissingResponse;
     init(new Decoder(decodeChunkSize), new Encoder());

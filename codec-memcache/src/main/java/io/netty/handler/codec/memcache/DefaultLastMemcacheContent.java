@@ -19,6 +19,9 @@ package io.netty.handler.codec.memcache;
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.Unpooled;
 
+/**
+ * The default implementation for the {@link LastMemcacheContent}.
+ */
 public class DefaultLastMemcacheContent extends DefaultMemcacheContent implements LastMemcacheContent {
 
   public DefaultLastMemcacheContent() {
