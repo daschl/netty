@@ -73,6 +73,7 @@ public class BinaryMemcacheRequestDecoderTest {
     assertThat(header.getExtrasLength(), is((byte) 0));
     assertThat(header.getTotalBodyLength(), is(3));
 
+    request.release();
     assertThat(channel.readInbound(), instanceOf(LastMemcacheContent.class));
   }
 

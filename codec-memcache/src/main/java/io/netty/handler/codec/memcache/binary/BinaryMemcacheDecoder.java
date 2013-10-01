@@ -22,9 +22,10 @@ import io.netty.handler.codec.memcache.DefaultMemcacheContent;
 import io.netty.handler.codec.memcache.MemcacheContent;
 import io.netty.handler.codec.memcache.MemcacheObjectDecoder;
 import io.netty.util.CharsetUtil;
-import io.netty.util.ReferenceCountUtil;
 
 import java.util.List;
+
+import static io.netty.buffer.ByteBufUtil.readBytes;
 
 /**
  * Decoder for both {@link BinaryMemcacheRequest} and {@link BinaryMemcacheResponse}.
@@ -41,7 +42,6 @@ public abstract class BinaryMemcacheDecoder<M extends BinaryMemcacheMessage, H e
   private H currentHeader;
   private ByteBuf currentExtras;
   private String currentKey;
-  private ByteBuf currentValue;
   private int alreadyReadChunkSize;
 
   private State state = State.READ_HEADER;
@@ -84,8 +84,7 @@ public abstract class BinaryMemcacheDecoder<M extends BinaryMemcacheMessage, H e
             return;
           }
 
-          currentExtras = ctx.alloc().buffer(extrasLength);
-          in.readBytes(currentExtras, extrasLength);
+          currentExtras = readBytes(ctx.alloc(), in, extrasLength);
         }
 
         state = State.READ_KEY;
@@ -96,7 +95,7 @@ public abstract class BinaryMemcacheDecoder<M extends BinaryMemcacheMessage, H e
             return;
           }
 
-          currentKey = in.readBytes(keyLength).toString(CharsetUtil.UTF_8);
+          currentKey = readBytes(ctx.alloc(), in, keyLength).toString(CharsetUtil.UTF_8);
         }
 
         out.add(buildMessage(currentHeader, currentExtras, currentKey));
@@ -115,12 +114,12 @@ public abstract class BinaryMemcacheDecoder<M extends BinaryMemcacheMessage, H e
             return;
           }
 
-          MemcacheContent chunk;
-          if ((alreadyReadChunkSize + toRead) >= valueLength) {
-            chunk = new DefaultLastMemcacheContent(in.readBytes(toRead));
-          }  else {
-            chunk = new DefaultMemcacheContent(in.readBytes(toRead));
-          }
+
+          ByteBuf chunkBuffer = readBytes(ctx.alloc(), in, toRead);
+          boolean isLast = (alreadyReadChunkSize + toRead) >= valueLength;
+          MemcacheContent chunk = isLast
+            ? new DefaultLastMemcacheContent(chunkBuffer)
+            : new DefaultMemcacheContent(chunkBuffer);
           alreadyReadChunkSize += toRead;
 
           out.add(chunk);
@@ -162,7 +161,6 @@ public abstract class BinaryMemcacheDecoder<M extends BinaryMemcacheMessage, H e
     currentHeader = null;
     currentExtras = null;
     currentKey = null;
-    currentValue = null;
     alreadyReadChunkSize = 0;
   }
 
