@@ -13,11 +13,17 @@
  * License for the specific language governing permissions and limitations
  * under the License.
  */
-package io.netty.handler.codec.memcache;
+package io.netty.handler.codec.memcache.ascii;
+
+import io.netty.handler.codec.memcache.MemcacheMessage;
 
 /**
- * Marker interface for both ascii and binary messages.
+ * An interface that defines a ascii Memcache message, providing common properties for
+ * {@link AsciiMemcacheRequest} and {@link AsciiMemcacheResponse}.
+ *
+ * @see AsciiMemcacheRequest
+ * @see AsciiMemcacheResponse
  */
-public interface MemcacheMessage extends MemcacheObject {
+public interface AsciiMemcacheMessage extends MemcacheMessage {
 
 }

@@ -50,7 +50,7 @@ public abstract class AbstractMemcacheObjectEncoder<M extends MemcacheMessage> e
         if (msg instanceof MemcacheContent || msg instanceof ByteBuf || msg instanceof FileRegion) {
             int contentLength = contentLength(msg);
             if (contentLength > 0) {
-                out.add(encodeAndRetain(msg));
+                encodeContent(msg, out);
             } else {
                 out.add(Unpooled.EMPTY_BUFFER);
             }
@@ -62,6 +62,19 @@ public abstract class AbstractMemcacheObjectEncoder<M extends MemcacheMessage> e
     @Override
     public boolean acceptOutboundMessage(Object msg) throws Exception {
         return msg instanceof MemcacheObject || msg instanceof ByteBuf || msg instanceof FileRegion;
+    }
+
+
+    /**
+     * Encode the content and add it to the output buffer.
+     *
+     * This method can be overriden if something needs to be appended after the content.
+     *
+     * @param msg the message to write.
+     * @param out the output list of objects.
+     */
+    protected void encodeContent(Object msg, List<Object> out) {
+        out.add(encodeAndRetain(msg));
     }
 
     /**

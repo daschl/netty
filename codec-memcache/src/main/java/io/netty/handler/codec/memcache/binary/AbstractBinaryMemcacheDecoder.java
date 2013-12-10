@@ -41,8 +41,6 @@ public abstract class AbstractBinaryMemcacheDecoder<M extends BinaryMemcacheMess
 
     public static final int DEFAULT_MAX_CHUNK_SIZE = 8192;
 
-    private final int chunkSize;
-
     private M currentMessage;
     private int alreadyReadChunkSize;
 
@@ -52,7 +50,7 @@ public abstract class AbstractBinaryMemcacheDecoder<M extends BinaryMemcacheMess
      * Create a new {@link AbstractBinaryMemcacheDecoder} with default settings.
      */
     protected AbstractBinaryMemcacheDecoder() {
-        this(DEFAULT_MAX_CHUNK_SIZE);
+        super(DEFAULT_MAX_CHUNK_SIZE);
     }
 
     /**
@@ -61,11 +59,7 @@ public abstract class AbstractBinaryMemcacheDecoder<M extends BinaryMemcacheMess
      * @param chunkSize the maximum chunk size of the payload.
      */
     protected AbstractBinaryMemcacheDecoder(int chunkSize) {
-        if (chunkSize < 0) {
-            throw new IllegalArgumentException("chunkSize must be a positive integer: " + chunkSize);
-        }
-
-        this.chunkSize = chunkSize;
+        super(chunkSize);
     }
 
     @Override
@@ -125,6 +119,7 @@ public abstract class AbstractBinaryMemcacheDecoder<M extends BinaryMemcacheMess
                         return;
                     }
 
+                    int chunkSize = getChunkSize();
                     if (toRead > chunkSize) {
                         toRead = chunkSize;
                     }

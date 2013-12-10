@@ -16,6 +16,7 @@
 package io.netty.handler.codec.memcache;
 
 import io.netty.handler.codec.ByteToMessageDecoder;
+import io.netty.handler.codec.memcache.ascii.AsciiMemcacheMessage;
 
 /**
  * Abstract super class for both ascii and binary decoders.
@@ -24,4 +25,25 @@ import io.netty.handler.codec.ByteToMessageDecoder;
  * is implemented.
  */
 public abstract class AbstractMemcacheObjectDecoder extends ByteToMessageDecoder {
+
+    public static final int DEFAULT_MAX_CHUNK_SIZE = 8192;
+
+    private final int chunkSize;
+
+    /**
+     * Create a new {@link AbstractMemcacheObjectDecoder} with custom settings.
+     *
+     * @param chunkSize the maximum chunk size of the payload.
+     */
+    protected AbstractMemcacheObjectDecoder(int chunkSize) {
+        if (chunkSize < 0) {
+            throw new IllegalArgumentException("chunkSize must be a positive integer: " + chunkSize);
+        }
+
+        this.chunkSize = chunkSize;
+    }
+
+    public int getChunkSize() {
+        return chunkSize;
+    }
 }
