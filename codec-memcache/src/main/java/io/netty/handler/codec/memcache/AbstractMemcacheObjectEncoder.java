@@ -18,7 +18,9 @@ package io.netty.handler.codec.memcache;
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.Unpooled;
 import io.netty.channel.ChannelHandlerContext;
+import io.netty.channel.ChannelPromise;
 import io.netty.channel.FileRegion;
+import io.netty.handler.codec.MessageToBufferedByteEncoder;
 import io.netty.handler.codec.MessageToMessageEncoder;
 import io.netty.util.internal.StringUtil;
 
@@ -31,12 +33,25 @@ import java.util.List;
  * require different treatment of their messages. Since the content chunk writing is the same for both, the encoder
  * abstracts this right away.</p>
  */
-public abstract class AbstractMemcacheObjectEncoder<M extends MemcacheMessage> extends MessageToMessageEncoder<Object> {
+public abstract class AbstractMemcacheObjectEncoder<M extends MemcacheMessage>
+    extends MessageToBufferedByteEncoder<Object> {
 
     private boolean expectingMoreContent;
 
     @Override
-    protected void encode(ChannelHandlerContext ctx, Object msg, List<Object> out) throws Exception {
+    public void write(ChannelHandlerContext ctx, Object msg, ChannelPromise promise) throws Exception {
+        if (msg instanceof FileRegion) {
+            // As we can't write a FileRegion into a ByteBuf in an efficient way we special handle it here
+            // and write it directly. This will also first write all buffered data to make sure we keep the
+            // correct order.
+            writeFileRegion(ctx, (FileRegion) msg, promise);
+            return;
+        }
+        super.write(ctx, msg, promise);
+    }
+
+    @Override
+    protected void encode(ChannelHandlerContext ctx, Object msg, ByteBuf out) throws Exception {
         if (msg instanceof MemcacheMessage) {
             if (expectingMoreContent) {
                 throw new IllegalStateException("unexpected message type: " + StringUtil.simpleClassName(msg));
@@ -44,18 +59,15 @@ public abstract class AbstractMemcacheObjectEncoder<M extends MemcacheMessage> e
 
             @SuppressWarnings({ "unchecked", "CastConflictsWithInstanceof" })
             final M m = (M) msg;
-            out.add(encodeMessage(ctx, m));
+            out.writeBytes(encodeMessage(ctx, m));
         }
 
-        if (msg instanceof MemcacheContent || msg instanceof ByteBuf || msg instanceof FileRegion) {
-            int contentLength = contentLength(msg);
-            if (contentLength > 0) {
-                out.add(encodeAndRetain(msg));
-            } else {
-                out.add(Unpooled.EMPTY_BUFFER);
-            }
-
+        if (msg instanceof MemcacheContent) {
+            out.writeBytes(((MemcacheContent) msg).content());
             expectingMoreContent = !(msg instanceof LastMemcacheContent);
+        } else if (msg instanceof ByteBuf) {
+            out.writeBytes((ByteBuf) msg);
+            expectingMoreContent = true;
         }
     }
 
@@ -73,42 +85,9 @@ public abstract class AbstractMemcacheObjectEncoder<M extends MemcacheMessage> e
      */
     protected abstract ByteBuf encodeMessage(ChannelHandlerContext ctx, M msg);
 
-    /**
-     * Determine the content length of the given object.
-     *
-     * @param msg the object to determine the length of.
-     * @return the determined content length.
-     */
-    private static int contentLength(Object msg) {
-        if (msg instanceof MemcacheContent) {
-            return ((MemcacheContent) msg).content().readableBytes();
-        }
-        if (msg instanceof ByteBuf) {
-            return ((ByteBuf) msg).readableBytes();
-        }
-        if (msg instanceof FileRegion) {
-            return (int) ((FileRegion) msg).count();
-        }
-        throw new IllegalStateException("unexpected message type: " + StringUtil.simpleClassName(msg));
-    }
-
-    /**
-     * Encode the content, depending on the object type.
-     *
-     * @param msg the object to encode.
-     * @return the encoded object.
-     */
-    private static Object encodeAndRetain(Object msg) {
-        if (msg instanceof ByteBuf) {
-            return ((ByteBuf) msg).retain();
-        }
-        if (msg instanceof MemcacheContent) {
-            return ((MemcacheContent) msg).content().retain();
-        }
-        if (msg instanceof FileRegion) {
-            return ((FileRegion) msg).retain();
-        }
-        throw new IllegalStateException("unexpected message type: " + StringUtil.simpleClassName(msg));
+    private void writeFileRegion(ChannelHandlerContext ctx, FileRegion region, ChannelPromise promise) {
+        writeBufferedData(ctx);
+        ctx.write(region, promise);
     }
 
 }
