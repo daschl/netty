@@ -26,6 +26,20 @@ import static io.netty.handler.codec.http.HttpConstants.*;
 public class HttpResponseEncoder extends HttpObjectEncoder<HttpResponse> {
     private static final byte[] CRLF = { CR, LF };
 
+    public HttpResponseEncoder() {
+        this(4096);
+    }
+
+    /**
+     * Create a new instance using the given {@code bufferSize}. If the {@code bufferSize} is bigger
+     * then {@code 0} it will try to buffer writes for optimal performance with HTTP PIPELINING.
+     *
+     * @param bufferSize size or {@code 0} if no buffering should take place at all.
+     */
+    public HttpResponseEncoder(int bufferSize) {
+        super(bufferSize);
+    }
+
     @Override
     public boolean acceptOutboundMessage(Object msg) throws Exception {
         return super.acceptOutboundMessage(msg) && !(msg instanceof HttpRequest);
