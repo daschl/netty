@@ -59,7 +59,7 @@ public abstract class AbstractMemcacheObjectEncoder<M extends MemcacheMessage>
 
             @SuppressWarnings({ "unchecked", "CastConflictsWithInstanceof" })
             final M m = (M) msg;
-            out.writeBytes(encodeMessage(ctx, m));
+            encodeMessage(ctx, m, out);
         }
 
         if (msg instanceof MemcacheContent) {
@@ -81,9 +81,10 @@ public abstract class AbstractMemcacheObjectEncoder<M extends MemcacheMessage>
      *
      * @param ctx the channel handler context.
      * @param msg the message to encode.
+     * @param out the outgoing byte buffer.
      * @return the {@link ByteBuf} representation of the message.
      */
-    protected abstract ByteBuf encodeMessage(ChannelHandlerContext ctx, M msg);
+    protected abstract void encodeMessage(ChannelHandlerContext ctx, M msg, ByteBuf out);
 
     private void writeFileRegion(ChannelHandlerContext ctx, FileRegion region, ChannelPromise promise) {
         writeBufferedData(ctx);

@@ -33,14 +33,10 @@ public abstract class AbstractBinaryMemcacheEncoder<M extends BinaryMemcacheMess
     private static final int DEFAULT_BUFFER_SIZE = 24;
 
     @Override
-    protected ByteBuf encodeMessage(ChannelHandlerContext ctx, M msg) {
-        ByteBuf buf = ctx.alloc().buffer(DEFAULT_BUFFER_SIZE);
-
+    protected void encodeMessage(ChannelHandlerContext ctx, M msg, ByteBuf buf) {
         encodeHeader(buf, msg);
         encodeExtras(buf, msg.getExtras());
         encodeKey(buf, msg.getKey());
-
-        return buf;
     }
 
     /**
