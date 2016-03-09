@@ -16,6 +16,7 @@
 package io.netty.channel.nio;
 
 
+import io.netty.channel.BackoffStrategy;
 import io.netty.channel.Channel;
 import io.netty.channel.ChannelException;
 import io.netty.channel.EventLoopException;
@@ -25,7 +26,6 @@ import io.netty.util.internal.PlatformDependent;
 import io.netty.util.internal.SystemPropertyUtil;
 import io.netty.util.internal.logging.InternalLogger;
 import io.netty.util.internal.logging.InternalLoggerFactory;
-
 import java.io.IOException;
 import java.lang.reflect.Field;
 import java.nio.channels.CancelledKeyException;
@@ -107,17 +107,24 @@ public final class NioEventLoop extends SingleThreadEventLoop {
      */
     private final AtomicBoolean wakenUp = new AtomicBoolean();
 
+    private final BackoffStrategy backoff;
+
     private volatile int ioRatio = 50;
     private int cancelledKeys;
     private boolean needsToSelectAgain;
 
-    NioEventLoop(NioEventLoopGroup parent, ThreadFactory threadFactory, SelectorProvider selectorProvider) {
+    NioEventLoop(NioEventLoopGroup parent, ThreadFactory threadFactory, SelectorProvider selectorProvider,
+        BackoffStrategy backoffStrategy) {
         super(parent, threadFactory, false);
         if (selectorProvider == null) {
             throw new NullPointerException("selectorProvider");
         }
+        if (backoffStrategy == null) {
+            throw new NullPointerException("backoffStrategy");
+        }
         provider = selectorProvider;
         selector = openSelector();
+        backoff = backoffStrategy;
     }
 
     private Selector openSelector() {
@@ -302,11 +309,15 @@ public final class NioEventLoop extends SingleThreadEventLoop {
     @Override
     protected void run() {
         for (;;) {
-            boolean oldWakenUp = wakenUp.getAndSet(false);
             try {
-                if (hasTasks()) {
-                    selectNow();
-                } else {
+                boolean hasTasks = hasTasks();
+                int selectNowCount = selectNow();
+                if (backoff.delaySelect(selectNowCount, hasTasks)) {
+                    continue;
+                }
+
+                if (selectNowCount == 0 && !hasTasks) {
+                    boolean oldWakenUp = wakenUp.getAndSet(false);
                     select(oldWakenUp);
 
                     // 'wakenUp.compareAndSet(false, true)' is always evaluated
@@ -592,9 +603,9 @@ public final class NioEventLoop extends SingleThreadEventLoop {
         }
     }
 
-    void selectNow() throws IOException {
+    int selectNow() throws IOException {
         try {
-            selector.selectNow();
+            return selector.selectNow();
         } finally {
             // restore wakup state if needed
             if (wakenUp.get()) {

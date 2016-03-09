@@ -15,10 +15,11 @@
  */
 package io.netty.channel.nio;
 
+import io.netty.channel.BackoffStrategyFactory;
 import io.netty.channel.Channel;
 import io.netty.channel.MultithreadEventLoopGroup;
+import io.netty.channel.NoopBackoffStrategyFactory;
 import io.netty.util.concurrent.EventExecutor;
-
 import java.nio.channels.Selector;
 import java.nio.channels.spi.SelectorProvider;
 import java.util.concurrent.ThreadFactory;
@@ -58,7 +59,12 @@ public class NioEventLoopGroup extends MultithreadEventLoopGroup {
      */
     public NioEventLoopGroup(
             int nThreads, ThreadFactory threadFactory, final SelectorProvider selectorProvider) {
-        super(nThreads, threadFactory, selectorProvider);
+        this(nThreads, threadFactory, selectorProvider, NoopBackoffStrategyFactory.INSTANCE);
+    }
+
+    public NioEventLoopGroup(int nThreads, ThreadFactory threadFactory,
+        final SelectorProvider selectorProvider, final BackoffStrategyFactory backoffStrategyFactory) {
+        super(nThreads, threadFactory, selectorProvider, backoffStrategyFactory);
     }
 
     /**
@@ -84,6 +90,7 @@ public class NioEventLoopGroup extends MultithreadEventLoopGroup {
     @Override
     protected EventExecutor newChild(
             ThreadFactory threadFactory, Object... args) throws Exception {
-        return new NioEventLoop(this, threadFactory, (SelectorProvider) args[0]);
+        BackoffStrategyFactory factory = (BackoffStrategyFactory) args[1];
+        return new NioEventLoop(this, threadFactory, (SelectorProvider) args[0], factory.newBackoffStrategy());
     }
 }
